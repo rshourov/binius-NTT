@@ -6,7 +6,7 @@
 #include <random>
 
 #include "../circuit_generator/unrolled/binary_tower_unrolled.cuh"
-#include "../circuit_generator/utils/bitslicing.hpp"
+#include "../../utils/bitslicing.cuh"
 #include "../circuit_generator/utils/utils.hpp"
 #include "./profiling/kernels/babybear_repeat.cuh"
 #include "./profiling/kernels/bitsliced_repeat.cuh"
@@ -137,12 +137,13 @@ TEST_CASE("mul_binary_tower_32b_bitsliced_unrolled", "[mul]") {
 	a[4] = 0xbe127079;
 	b[4] = 0x2cd911fc;
 
-	bitslice_transpose(a, 1 << TEST_TOWER_HEIGHT);
-	bitslice_transpose(b, 1 << TEST_TOWER_HEIGHT);
+	BitsliceUtils<(1 << TEST_TOWER_HEIGHT)>::bitslice_transpose(a);
+
+	BitsliceUtils<(1 << TEST_TOWER_HEIGHT)>::bitslice_transpose(b);
 
 	multiply_unrolled<TEST_TOWER_HEIGHT>(a, b, result);
 
-	bitslice_untranspose(result, 1 << TEST_TOWER_HEIGHT);
+	BitsliceUtils<(1 << TEST_TOWER_HEIGHT)>::bitslice_untranspose(result);
 
 	REQUIRE(result[0] == 0xafab1b8f);
 	REQUIRE(result[1] == 0xf35c8d0f);
@@ -186,12 +187,13 @@ TEST_CASE("mul_binary_tower_128b_bitsliced_unrolled", "[mul]") {
 
 	write_string_to_int_arr(b, field_elem_b_str);
 
-	bitslice_transpose(a, 1 << TEST_TOWER_HEIGHT);
-	bitslice_transpose(b, 1 << TEST_TOWER_HEIGHT);
+	BitsliceUtils<(1 << TEST_TOWER_HEIGHT)>::bitslice_transpose(a);
+
+	BitsliceUtils<(1 << TEST_TOWER_HEIGHT)>::bitslice_transpose(b);
 
 	multiply_unrolled<TEST_TOWER_HEIGHT>(a, b, result);
 
-	bitslice_untranspose(result, 1 << TEST_TOWER_HEIGHT);
+	BitsliceUtils<(1 << TEST_TOWER_HEIGHT)>::bitslice_untranspose(result);
 
 	REQUIRE(result[0] == 0x4b3220e5);
 	REQUIRE(result[1] == 0x999c424f);
