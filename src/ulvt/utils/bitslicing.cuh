@@ -4,12 +4,12 @@
 #include <cstdint>
 #include <cstring>
 
-#define INTS_PER_UNBITSLICED_VALUE 4
-
 template <size_t BITSLICING_BITS_WIDTH>
 class BitsliceUtils {
 private:
 	std::array<uint32_t, BITSLICING_BITS_WIDTH>& buffer;
+
+	static constexpr size_t INTS_PER_UNBITSLICED_VALUE = BITSLICING_BITS_WIDTH/32;
 
 	__host__ __device__ static void transpose32(uint32_t A[32]) {
 		int j, k;

@@ -2,7 +2,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "../circuit_generator/unrolled/binary_tower_unrolled.cuh"
-#include "../circuit_generator/utils/bitslicing.hpp"
+#include "../../utils/bitslicing.cuh"
 #include "ulvt/finite_fields/binary_tower.cuh"
 #include "ulvt/finite_fields/binary_tower_simd.cuh"
 
@@ -167,14 +167,14 @@ TEST_CASE("Bitsliced 32 multiplications", "[mul]") {
 	uint32_t results[WIDTH];
 
 	// Perform bitslice transpose on 'a' and 'b'
-	bitslice_transpose(a, WIDTH);
-	bitslice_transpose(b, WIDTH);
+	BitsliceUtils<WIDTH>::bitslice_transpose(a);
+	BitsliceUtils<WIDTH>::bitslice_transpose(b);
 
 	// Perform the multiplication
 	multiply_unrolled<TEST_TOWER_HEIGHT>(a, b, results);
 
 	// Perform bitslice untranspose on 'results'
-	bitslice_untranspose(results, WIDTH);
+	BitsliceUtils<WIDTH>::bitslice_untranspose(results);
 
 	// Verify the results
 	REQUIRE(results[0] == 0x6be27e5c);
@@ -242,14 +242,14 @@ TEST_CASE("Bitsliced 128-bit multiplications") {
 	uint32_t results[WIDTH];
 
 	// Perform bitslice transpose on 'a' and 'b'
-	bitslice_transpose(a, WIDTH);
-	bitslice_transpose(b, WIDTH);
+	BitsliceUtils<WIDTH>::bitslice_transpose(a);
+	BitsliceUtils<WIDTH>::bitslice_transpose(b);
 
 	// Perform the multiplication
 	multiply_unrolled<TEST_TOWER_HEIGHT>(a, b, results);
 
 	// Perform bitslice untranspose on 'results'
-	bitslice_untranspose(results, WIDTH);
+	BitsliceUtils<WIDTH>::bitslice_untranspose(results);
 
 	// Verify the results
 	REQUIRE(results[0] == 0x7071882c);
