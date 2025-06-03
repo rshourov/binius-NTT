@@ -11,6 +11,10 @@ public:
 
     M31 subfield_elements[2];
 
+    __host__ __device__ constexpr CM31() : subfield_elements{M31(), M31()} {}
+
+    __host__ __device__ constexpr CM31(uint32_t val) : subfield_elements{M31(val), M31(val)} {}
+
     __host__ __device__ constexpr CM31(M31 lo, M31 hi) : subfield_elements{lo, hi} {}
 
     __host__ __device__ constexpr CM31 operator+(CM31 rhs) const { 
@@ -42,7 +46,7 @@ public:
         return subfield_elements[0] != rhs.subfield_elements[0] || subfield_elements[1] != rhs.subfield_elements[1];
      }
 
-     __host__ __device__ std::string to_string() const {
+     __host__ std::string to_string() const {
         return "(" + subfield_elements[0].to_string() + ", " + subfield_elements[1].to_string() + ")";
      }
 };

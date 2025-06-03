@@ -11,6 +11,7 @@ public:
 
     static constexpr uint32_t P = ((uint32_t) 1<<BITS) - 1;
 
+    __host__ __device__ constexpr M31() : val(0) {}
     // Assumes val is in the range [0, P)
     __host__ __device__ constexpr M31(uint32_t val) : val(val) {}
 
@@ -43,7 +44,7 @@ public:
         return val != rhs.val;
      }
 
-     __host__ __device__ std::string to_string() const {
+     __host__ std::string to_string() const {
         return std::to_string(val);
      }
 };
