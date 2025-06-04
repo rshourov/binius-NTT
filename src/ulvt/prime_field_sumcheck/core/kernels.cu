@@ -5,25 +5,26 @@
 #include <cstdint>
 
 __global__ void fold_list_halves(QM31 *list, QM31 challenge,
-                                 uint32_t col_size ) {
+                                 uint32_t current_col_size, uint32_t original_col_size ) {
   const uint32_t tid =
       threadIdx.x +
       blockIdx.x * blockDim.x; // start the batch index off at the tid
 
   for (std::size_t col_idx = 0; col_idx < 2; ++col_idx) {
-    QM31 *this_column_start = list + col_idx * col_size;
-    for (std::size_t row_idx = tid; row_idx < col_size / 2;
-         row_idx += gridDim.x * blockDim.x) {
-      // TODO: batch 128 rows in the same thread
-      QM31 *lower_batch = this_column_start + row_idx;
-      QM31 *upper_batch = lower_batch + col_size / 2;
+    QM31 *this_column_start = list + col_idx * original_col_size;
+    for (std::size_t lower_row_idx = tid; lower_row_idx < current_col_size / 2;
+         lower_row_idx += gridDim.x * blockDim.x) {
 
+      std::size_t upper_row_idx = lower_row_idx + current_col_size / 2;
+      // TODO: batch 128 rows in the same thread
+      QM31 *lower_batch = this_column_start + lower_row_idx;
+      QM31 *upper_batch = this_column_start + upper_row_idx;
       *lower_batch = *lower_batch + (*upper_batch - *lower_batch) * challenge;
     }
   }
 }
 
-__global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_t sum_one[4], uint64_t sum_two[4], uint32_t col_size) {
+__global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_t sum_one[4], uint64_t sum_two[4], uint32_t current_col_size, uint32_t original_col_size) {
   const uint32_t tid =
       threadIdx.x +
       blockIdx.x * blockDim.x;
@@ -32,11 +33,13 @@ __global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_
   uint64_t this_thread_sum_one[4] = {0, 0, 0, 0};
   uint64_t this_thread_sum_two[4] = {0, 0, 0, 0};
 
-  for (std::size_t row_idx = tid; row_idx < col_size;
-       row_idx += gridDim.x * blockDim.x) {
+  for (std::size_t lower_row_idx = tid; lower_row_idx < current_col_size / 2;
+       lower_row_idx += gridDim.x * blockDim.x) {
 
-    QM31 *lower_batch = list + row_idx;
-    QM31 *upper_batch = lower_batch + col_size / 2;
+    std::size_t upper_row_idx = lower_row_idx + current_col_size / 2;
+
+    QM31 *lower_batch = list + lower_row_idx;
+    QM31 *upper_batch = list + upper_row_idx;
 
 
     QM31 this_row_product_zero = *lower_batch;
@@ -44,10 +47,10 @@ __global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_
     QM31 this_row_product_two = (*upper_batch - *lower_batch) + *upper_batch;
 
     for (std::size_t col_idx = 1; col_idx < 2; ++col_idx) {
-      QM31 *this_column_start = list + col_idx * col_size;
-      // TODO: batch 128 rows in the same thread
-      QM31 *lower_batch = this_column_start + row_idx;
-      QM31 *upper_batch = lower_batch + col_size / 2;
+      QM31 *this_column_start = list + col_idx * original_col_size;
+    //   // TODO: batch 128 rows in the same thread
+      QM31 *lower_batch = this_column_start + lower_row_idx;
+      QM31 *upper_batch = this_column_start + upper_row_idx;
 
       this_row_product_zero *= *lower_batch;
       this_row_product_one *= *upper_batch;

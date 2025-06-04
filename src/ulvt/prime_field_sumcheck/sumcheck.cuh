@@ -75,7 +75,7 @@ public:
     // TODO collect the round coefficient sums from each thread
     get_round_coefficients<<<BLOCKS, THREADS_PER_BLOCK>>>(
         gpu_multilinear_evaluations, sum_zero_device, sum_one_device,
-        sum_two_device, EVALS_PER_MULTILINEAR);
+        sum_two_device, EVALS_PER_MULTILINEAR, EVALS_PER_MULTILINEAR >> round);
 
     cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
@@ -104,7 +104,7 @@ public:
   template <uint32_t BLOCKS, uint32_t THREADS_PER_BLOCK>
   void fold(QM31 challenge) {
     fold_list_halves<<<BLOCKS, THREADS_PER_BLOCK>>>(
-        gpu_multilinear_evaluations, challenge, EVALS_PER_MULTILINEAR);
+        gpu_multilinear_evaluations, challenge, EVALS_PER_MULTILINEAR, EVALS_PER_MULTILINEAR >> round);
 
     ++round;
   };
