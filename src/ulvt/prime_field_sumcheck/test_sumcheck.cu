@@ -15,6 +15,10 @@ template <int I, int N> void do_unrolled_loop() {
 
 int main() {
 
+  QM31 points[3] = {(uint32_t) 4, (uint32_t) 4, (uint32_t) 4};
+  QM31 result = interpolate_at((uint32_t) 7, points);
+  std::cout << "result" << result.to_string() << std::endl;
+
   QM31 expected_claim = QM31(1 << 2) * QM31((1 << 3) - 1);
 
   std::cout << "expected claim" << expected_claim.to_string() << std::endl;
@@ -43,7 +47,7 @@ int main() {
     std::cout << this_round_points[1].to_string() << std::endl;
     std::cout << this_round_points[2].to_string() << std::endl;
 
-    uint64_t a[4] = {0, 0, 0, 0};
+    uint64_t a[4] = {32482843, 85864538, 8348234, 9544334};
     QM31 challenge = QM31(a);
 
     QM31 next_round_claim = interpolate_at(challenge, this_round_points.data());

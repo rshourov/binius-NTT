@@ -61,8 +61,8 @@ __global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_
   }
   
   for (std::size_t i = 0; i < 4; ++i) {
-    sum_zero[i] = this_thread_sum_zero[i] + sum_zero[i];
-    sum_one[i] = this_thread_sum_one[i] + sum_one[i];
-    sum_two[i] = this_thread_sum_two[i] + sum_two[i];
+    sum_zero[i] += this_thread_sum_zero[i];
+    sum_one[i] += this_thread_sum_one[i];
+    sum_two[i] += this_thread_sum_two[i];
   }
 }
