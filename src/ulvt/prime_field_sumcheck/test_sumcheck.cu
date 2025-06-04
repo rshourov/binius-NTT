@@ -1,4 +1,5 @@
 #include "../finite_fields/qm31.cuh"
+#include "./utils/interpolate.hpp"
 #include "sumcheck.cuh"
 #include <array>
 #include <iostream>
@@ -32,13 +33,22 @@ int main() {
     } else {
       sumcheck.this_round_messages<1, 1>(this_round_points);
     }
-    std::cout << evals[10].to_string() << std::endl;
+    
+    QM31 this_round_claim = this_round_points[0] + this_round_points[1];
+
+    std::cout << "this round claim" << this_round_claim.to_string() << std::endl;
+
 
     std::cout << this_round_points[0].to_string() << std::endl;
     std::cout << this_round_points[1].to_string() << std::endl;
     std::cout << this_round_points[2].to_string() << std::endl;
 
-    QM31 challenge = 3329243;
+    uint64_t a[4] = {3329243,3329243,3329243,3329243};
+    QM31 challenge = QM31(a);
+
+    QM31 next_round_claim = interpolate_at(challenge, this_round_points.data());
+
+    std::cout << "next round claim" << next_round_claim.to_string() << std::endl;
 
     if (i < 3) {
       sumcheck.fold<2048, 32>(challenge);

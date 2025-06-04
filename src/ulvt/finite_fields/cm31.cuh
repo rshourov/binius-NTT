@@ -13,7 +13,7 @@ public:
 
     __host__ __device__ constexpr CM31() : subfield_elements{M31(), M31()} {}
 
-    __host__ __device__ constexpr CM31(uint32_t val) : subfield_elements{M31(val), M31(val)} {}
+    __host__ __device__ constexpr CM31(uint32_t val) : subfield_elements{M31(val), M31()} {}
 
     __host__ __device__ constexpr CM31(uint64_t val[2]) : subfield_elements{M31(val[0]), M31(val[1])} {}
 
@@ -53,8 +53,7 @@ public:
      }
 
     __host__ __device__ constexpr CM31& operator*=(CM31 rhs) {
-        subfield_elements[0] = subfield_elements[0] * rhs.subfield_elements[0] - subfield_elements[1] * rhs.subfield_elements[1];
-        subfield_elements[1] = subfield_elements[0] * rhs.subfield_elements[1] + subfield_elements[1] * rhs.subfield_elements[0];
+        *this = *this * rhs;
         return *this;
      }
 

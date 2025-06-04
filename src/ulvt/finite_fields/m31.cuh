@@ -51,7 +51,7 @@ public:
      }
 
      __host__ __device__ constexpr M31& operator*=(M31 rhs) {
-        val = (uint64_t) val * (uint64_t) rhs.val;
+        *this = *this * rhs;
         return *this;
      }
 
