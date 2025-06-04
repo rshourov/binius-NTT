@@ -33,9 +33,11 @@ __global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_
   uint64_t this_thread_sum_one[4] = {0, 0, 0, 0};
   uint64_t this_thread_sum_two[4] = {0, 0, 0, 0};
 
-  for (std::size_t lower_row_idx = 0; lower_row_idx < current_col_size/2;
+  const std::size_t this_thread_idx_range_len = (current_col_size / 2) / (gridDim.x * blockDim.x);
+
+  for (std::size_t lower_row_idx = tid * this_thread_idx_range_len; lower_row_idx < (tid + 1) * this_thread_idx_range_len;
        ++lower_row_idx) {
-    std::size_t upper_row_idx = lower_row_idx + current_col_size/2;
+    std::size_t upper_row_idx = lower_row_idx + current_col_size / 2;
 
     QM31 *lower_batch = list + lower_row_idx;
     QM31 *upper_batch = list + upper_row_idx;
