@@ -15,60 +15,44 @@ template <int I, int N> void do_unrolled_loop() {
 
 int main() {
 
-QM31 interp_evals[3] = {(uint32_t) 0, (uint32_t) 1, (uint32_t) 4};
+  QM31 expected_claim = QM31(1 << 2) * QM31((1 << 3) - 1);
 
-QM31 result = interpolate_at((uint32_t) 7, interp_evals);
-
-std::cout << "result" << result.to_string() << std::endl;
-
-
+  std::cout << "expected claim" << expected_claim.to_string() << std::endl;
   std::vector<QM31> evals;
-  for (std::size_t i = 0; i < 1 << 21; ++i) {
+  for (std::size_t i = 0; i < 1 << 3; ++i) {
     evals.push_back(QM31(i));
   }
 
-  Sumcheck<20> sumcheck(evals, false);
+  for (std::size_t i = 0; i < 1 << 3; ++i) {
+    evals.push_back(QM31((uint32_t)1));
+  }
 
-  for (std::size_t i = 0; i < 20; ++i) {
+  Sumcheck<3> sumcheck(evals, false);
+
+  for (std::size_t i = 0; i < 3; ++i) {
     std::array<QM31, 3> this_round_points;
 
-    if (i < 3) {
-      sumcheck.this_round_messages<2048, 32>(this_round_points);
-    } else if (i < 6) {
-      sumcheck.this_round_messages<256, 32>(this_round_points);
-    } else if (i < 9) {
-      sumcheck.this_round_messages<32, 32>(this_round_points);
-    } else {
-      sumcheck.this_round_messages<1, 1>(this_round_points);
-    }
-    
+    sumcheck.this_round_messages<1, 1>(this_round_points);
+
     QM31 this_round_claim = this_round_points[0] + this_round_points[1];
 
-    std::cout << "this round claim" << this_round_claim.to_string() << std::endl;
-
+    std::cout << "this round claim" << this_round_claim.to_string()
+              << std::endl;
 
     std::cout << this_round_points[0].to_string() << std::endl;
     std::cout << this_round_points[1].to_string() << std::endl;
     std::cout << this_round_points[2].to_string() << std::endl;
 
-    uint64_t a[4] = {3329243,3329243,3329243,3329243};
+    uint64_t a[4] = {0, 0, 0, 0};
     QM31 challenge = QM31(a);
 
     QM31 next_round_claim = interpolate_at(challenge, this_round_points.data());
 
-    std::cout << "next round claim" << next_round_claim.to_string() << std::endl;
+    std::cout << "next round claim" << next_round_claim.to_string()
+              << std::endl;
 
-    if (i < 3) {
-      sumcheck.fold<2048, 32>(challenge);
-    } else if (i < 6) {
-      sumcheck.fold<256, 32>(challenge);
-    } else if (i < 9) {
-      sumcheck.fold<32, 32>(challenge);
-    } else {
-      sumcheck.fold<1, 1>(challenge);
-    }
+    sumcheck.fold<1, 1>(challenge);
   }
 
-  std::cout << "Hello, World!" << std::endl;
   return 0;
 }
