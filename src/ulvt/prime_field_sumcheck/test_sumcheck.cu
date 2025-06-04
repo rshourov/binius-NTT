@@ -80,9 +80,9 @@ int main() {
     else if (i < 10){sumcheck.fold<32, 32>(challenge);}
     else if (i < 11){sumcheck.fold<16, 32>(challenge);}
     else if (i < 12){sumcheck.fold<8, 32>(challenge);}
-    else if (i < 10){sumcheck.fold<4, 32>(challenge);}
-    else if (i < 11){sumcheck.fold<2, 32>(challenge);}
-    else if (i < 12){sumcheck.fold<1, 32>(challenge);}
+    else if (i < 13){sumcheck.fold<4, 32>(challenge);}
+    else if (i < 14){sumcheck.fold<2, 32>(challenge);}
+    else if (i < 15){sumcheck.fold<1, 32>(challenge);}
 
 
     else {sumcheck.fold<1, 1>(challenge);}
