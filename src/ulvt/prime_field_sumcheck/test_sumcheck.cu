@@ -14,6 +14,14 @@ template <int I, int N> void do_unrolled_loop() {
 }
 
 int main() {
+
+QM31 interp_evals[3] = {(uint32_t) 0, (uint32_t) 1, (uint32_t) 4};
+
+QM31 result = interpolate_at((uint32_t) 7, interp_evals);
+
+std::cout << "result" << result.to_string() << std::endl;
+
+
   std::vector<QM31> evals;
   for (std::size_t i = 0; i < 1 << 21; ++i) {
     evals.push_back(QM31(i));
