@@ -45,7 +45,10 @@ int main() {
      else if (i < 10){sumcheck.this_round_messages<32, 32>(this_round_points);}
      else if (i < 11){sumcheck.this_round_messages<16, 32>(this_round_points);}
      else if (i < 12){sumcheck.this_round_messages<8, 32>(this_round_points);}
-     
+     else if (i < 13){sumcheck.this_round_messages<4, 32>(this_round_points);}
+     else if (i < 14){sumcheck.this_round_messages<2, 32>(this_round_points);}
+     else if (i < 15){sumcheck.this_round_messages<1, 32>(this_round_points);}
+
      else {
 
         sumcheck.this_round_messages<1, 1>(this_round_points);
@@ -77,6 +80,9 @@ int main() {
     else if (i < 10){sumcheck.fold<32, 32>(challenge);}
     else if (i < 11){sumcheck.fold<16, 32>(challenge);}
     else if (i < 12){sumcheck.fold<8, 32>(challenge);}
+    else if (i < 10){sumcheck.fold<4, 32>(challenge);}
+    else if (i < 11){sumcheck.fold<2, 32>(challenge);}
+    else if (i < 12){sumcheck.fold<1, 32>(challenge);}
 
 
     else {sumcheck.fold<1, 1>(challenge);}
