@@ -26,14 +26,33 @@ public:
         return M31((sum + carry) & P);
      }
 
+     __host__ __device__ constexpr M31& operator+=(M31 rhs) {
+        uint32_t sum = val + rhs.val;
+        uint32_t carry = sum >> BITS;
+        val = (sum + carry) & P;
+        return *this;
+     }
+
     __host__ __device__ constexpr M31 operator-(M31 rhs) const { 
         uint32_t diff = val - rhs.val;
         uint32_t carry = diff >> BITS;
         return M31((diff - carry) & P);
      }
-    
+
+     __host__ __device__ constexpr M31& operator-=(M31 rhs) {
+        uint32_t diff = val - rhs.val;
+        uint32_t carry = diff >> BITS;
+        val = (diff - carry) & P;
+        return *this;
+     }
+      
     __host__ __device__ constexpr M31 operator*(M31 rhs) const { 
         return M31( (uint64_t) val * (uint64_t)rhs.val);
+     }
+
+     __host__ __device__ constexpr M31& operator*=(M31 rhs) {
+        val = (uint64_t) val * (uint64_t) rhs.val;
+        return *this;
      }
 
      __host__ __device__ constexpr bool operator==(M31 rhs) const { 
@@ -42,6 +61,14 @@ public:
 
     __host__ __device__ constexpr bool operator!=(M31 rhs) const { 
         return val != rhs.val;
+     }
+
+     __host__ __device__ void write_to_u64(uint64_t* dst) const {
+        *dst = (uint64_t) val;
+     }
+
+     __host__ __device__ void sum_into_u64(uint64_t* dst) const {
+        *dst += (uint64_t) val;
      }
 
      __host__ std::string to_string() const {
