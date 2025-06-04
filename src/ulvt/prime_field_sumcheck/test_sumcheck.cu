@@ -4,19 +4,17 @@
 #include <iostream>
 #include <vector>
 
-template <int I, int N>
-void do_unrolled_loop() {
-    if constexpr (I < N) {
-        // Use I as constexpr index
-        
+template <int I, int N> void do_unrolled_loop() {
+  if constexpr (I < N) {
+    // Use I as constexpr index
 
-        do_unrolled_loop<I + 1, N>();
-    }
+    do_unrolled_loop<I + 1, N>();
+  }
 }
 
 int main() {
   std::vector<QM31> evals;
-  for (std::size_t i = 0; i < 1 << 20; ++i) {
+  for (std::size_t i = 0; i < 1 << 21; ++i) {
     evals.push_back(QM31(i));
   }
 
@@ -25,26 +23,31 @@ int main() {
   for (std::size_t i = 0; i < 20; ++i) {
     std::array<QM31, 3> this_round_points;
 
-    if (i < 3){
-        sumcheck.this_round_messages<2048, 32>(this_round_points);
-    } else if (i < 6){
-        sumcheck.this_round_messages<256, 32>(this_round_points);
-    } else if (i < 9){
-        sumcheck.this_round_messages<32, 32>(this_round_points);
+    if (i < 3) {
+      sumcheck.this_round_messages<2048, 32>(this_round_points);
+    } else if (i < 6) {
+      sumcheck.this_round_messages<256, 32>(this_round_points);
+    } else if (i < 9) {
+      sumcheck.this_round_messages<32, 32>(this_round_points);
     } else {
-        sumcheck.this_round_messages<1, 1>(this_round_points);
+      sumcheck.this_round_messages<1, 1>(this_round_points);
     }
+    std::cout << evals[10].to_string() << std::endl;
+
+    std::cout << this_round_points[0].to_string() << std::endl;
+    std::cout << this_round_points[1].to_string() << std::endl;
+    std::cout << this_round_points[2].to_string() << std::endl;
 
     QM31 challenge = 3329243;
 
-    if (i < 3){
-        sumcheck.fold<2048, 32>(challenge);
-    } else if (i < 6){
-        sumcheck.fold<256, 32>(challenge);
-    } else if (i < 9){
-        sumcheck.fold<32, 32>(challenge);
+    if (i < 3) {
+      sumcheck.fold<2048, 32>(challenge);
+    } else if (i < 6) {
+      sumcheck.fold<256, 32>(challenge);
+    } else if (i < 9) {
+      sumcheck.fold<32, 32>(challenge);
     } else {
-        sumcheck.fold<1, 1>(challenge);
+      sumcheck.fold<1, 1>(challenge);
     }
   }
 
