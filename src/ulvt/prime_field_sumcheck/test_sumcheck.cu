@@ -36,21 +36,8 @@ int main() {
   for (std::size_t i = 0; i < 20; ++i) {
     std::array<QM31, 3> this_round_points;
 
-    if (i < 4){sumcheck.this_round_messages<2048, 32>(this_round_points);}
-     else if (i < 5){sumcheck.this_round_messages<1024, 32>(this_round_points);}
-     else if (i < 6){sumcheck.this_round_messages<512, 32>(this_round_points);}
-     else if (i < 7){sumcheck.this_round_messages<256, 32>(this_round_points);}
-     else if (i < 8){sumcheck.this_round_messages<128, 32>(this_round_points);}
-     else if (i < 9){sumcheck.this_round_messages<64, 32>(this_round_points);}
-     else if (i < 10){sumcheck.this_round_messages<32, 32>(this_round_points);}
-     else if (i < 11){sumcheck.this_round_messages<16, 32>(this_round_points);}
-     else if (i < 12){sumcheck.this_round_messages<8, 32>(this_round_points);}
-     else if (i < 13){sumcheck.this_round_messages<4, 32>(this_round_points);}
-     else if (i < 14){sumcheck.this_round_messages<2, 32>(this_round_points);}
-     else if (i < 15){sumcheck.this_round_messages<1, 32>(this_round_points);}
-
+    if (i < 4){sumcheck.this_round_messages<1024, 1>(this_round_points);}
      else {
-
         sumcheck.this_round_messages<1, 1>(this_round_points);
     }
 
