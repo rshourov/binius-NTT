@@ -7,7 +7,7 @@
 
 template <uint32_t NUM_VARS> class Sumcheck {
   static_assert(NUM_VARS == 1 || NUM_VARS == 20 || NUM_VARS == 24 ||
-                    NUM_VARS == 3,
+                    NUM_VARS == 28,
                 "NUM_VARS must be 1, 20, 24, or 28");
 
 private:

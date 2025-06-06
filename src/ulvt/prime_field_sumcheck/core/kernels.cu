@@ -33,28 +33,31 @@ __global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_
   uint64_t this_thread_sum_one[4] = {0, 0, 0, 0};
   uint64_t this_thread_sum_two[4] = {0, 0, 0, 0};
 
-  const std::size_t this_thread_idx_range_len = (current_col_size / 2) / (gridDim.x * blockDim.x);
-
-  for (std::size_t lower_row_idx = tid * this_thread_idx_range_len; lower_row_idx < (tid + 1) * this_thread_idx_range_len;
-       ++lower_row_idx) {
+  for (std::size_t lower_row_idx = tid ; lower_row_idx < current_col_size / 2;
+       lower_row_idx+=blockDim.x * gridDim.x) {
     std::size_t upper_row_idx = lower_row_idx + current_col_size / 2;
 
     QM31 *lower_batch = list + lower_row_idx;
     QM31 *upper_batch = list + upper_row_idx;
 
-    QM31 this_row_product_zero = *lower_batch;
-    QM31 this_row_product_one = *upper_batch;
-    QM31 this_row_product_two = (*upper_batch - *lower_batch) + *upper_batch;
+    QM31 lower = *lower_batch;
+    QM31 upper = *upper_batch;
+
+    QM31 this_row_product_zero = lower;
+    QM31 this_row_product_one = upper;
+    QM31 this_row_product_two = (upper - lower) + upper;
 
     for (std::size_t col_idx = 1; col_idx < 2; ++col_idx) {
       QM31 *this_column_start = list + col_idx * original_col_size;
-      // TODO: batch 128 rows in the same thread
       QM31 *lower_batch = this_column_start + lower_row_idx;
       QM31 *upper_batch = this_column_start + upper_row_idx;
 
-      this_row_product_zero *= *lower_batch;
-      this_row_product_one *= *upper_batch;
-      this_row_product_two *= (*upper_batch - *lower_batch) + *upper_batch;
+      QM31 lower = *lower_batch;
+      QM31 upper = *upper_batch;
+
+      this_row_product_zero *= lower;
+      this_row_product_one *= upper;
+      this_row_product_two *= (upper - lower) + upper;
     }
 
     this_row_product_zero.sum_into_u64(this_thread_sum_zero);
@@ -63,7 +66,7 @@ __global__ void get_round_coefficients(QM31 *list, uint64_t sum_zero[4], uint64_
   }
   
   for (std::size_t i = 0; i < 4; ++i) {
-    atomicAdd( (unsigned long long *) sum_zero + i, (unsigned long long) this_thread_sum_zero[i]);
+    atomicAdd((unsigned long long *) sum_zero + i, (unsigned long long) this_thread_sum_zero[i]);
     atomicAdd((unsigned long long *) sum_one + i, (unsigned long long) this_thread_sum_one[i]);
     atomicAdd((unsigned long long *) sum_two + i, (unsigned long long) this_thread_sum_two[i]);
   }
