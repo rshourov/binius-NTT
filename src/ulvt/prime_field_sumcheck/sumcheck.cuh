@@ -32,7 +32,7 @@ public:
     if (benchmarking) {
       start_before_memcpy = std::chrono::high_resolution_clock::now();
     }
-    
+
     cudaMemcpy(gpu_multilinear_evaluations, evals,
                sizeof(QM31) * EVALS_PER_MULTILINEAR * 2,
                cudaMemcpyHostToDevice);
@@ -63,8 +63,8 @@ public:
 
     // TODO collect the round coefficient sums from each thread
     get_round_coefficients<<<BLOCKS, THREADS_PER_BLOCK>>>(
-        gpu_multilinear_evaluations, sum_zero_device, sum_one_device, sum_two_device, EVALS_PER_MULTILINEAR >> round, EVALS_PER_MULTILINEAR);
-   
+        gpu_multilinear_evaluations, sum_zero_device, sum_one_device,
+        sum_two_device, EVALS_PER_MULTILINEAR >> round, EVALS_PER_MULTILINEAR);
 
     cudaMemcpy(sum_zero, sum_zero_device, sizeof(uint64_t) * 4,
                cudaMemcpyDeviceToHost);
@@ -87,8 +87,8 @@ public:
   template <uint32_t BLOCKS, uint32_t THREADS_PER_BLOCK>
   void fold(QM31 challenge) {
     fold_list_halves<<<BLOCKS, THREADS_PER_BLOCK>>>(
-        gpu_multilinear_evaluations, challenge,
-        EVALS_PER_MULTILINEAR >> round, EVALS_PER_MULTILINEAR);
+        gpu_multilinear_evaluations, challenge, EVALS_PER_MULTILINEAR >> round,
+        EVALS_PER_MULTILINEAR);
 
     cudaDeviceSynchronize();
 
