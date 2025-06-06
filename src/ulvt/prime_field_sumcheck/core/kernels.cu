@@ -1,7 +1,5 @@
 #include <stdio.h>
-
 #include "../../finite_fields/qm31.cuh"
-#include "../utils/constants.hpp"
 #include <cstdint>
 
 __global__ void fold_list_halves(QM31 *list, QM31 challenge,

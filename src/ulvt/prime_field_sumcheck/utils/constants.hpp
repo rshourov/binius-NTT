@@ -1,4 +1,0 @@
-#pragma once
-#define BLOCKS 2048u
-#define THREADS_PER_BLOCK 32u
-#define THREADS (THREADS_PER_BLOCK * BLOCKS)

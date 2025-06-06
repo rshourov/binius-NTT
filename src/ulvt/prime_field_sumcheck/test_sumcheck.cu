@@ -4,36 +4,31 @@
 #include <array>
 #include <iostream>
 #include <vector>
+#include <catch2/catch_test_macros.hpp>
 
-template <int I, int N> void do_unrolled_loop() {
-  if constexpr (I < N) {
-    // Use I as constexpr index
 
-    do_unrolled_loop<I + 1, N>();
-  }
-}
-
-int main() {
-
+TEST_CASE("Prime Field Sumcheck Test", "[prime_field]") {
   QM31 points[3] = {(uint32_t) 4, (uint32_t) 4, (uint32_t) 4};
   QM31 result = interpolate_at((uint32_t) 7, points);
-  std::cout << "result" << result.to_string() << std::endl;
 
   constexpr uint32_t NUM_VARS = 24;
 
-  QM31 expected_claim = QM31(1 << (NUM_VARS -1)) * QM31((1 << NUM_VARS) - 1);
+  QM31 expected_claim = (uint32_t) 0;
 
-  std::cout << "expected claim" << expected_claim.to_string() << std::endl;
   std::vector<QM31> evals;
   for (std::size_t i = 0; i < 1 << NUM_VARS; ++i) {
     evals.push_back(QM31(i));
   }
 
   for (std::size_t i = 0; i < 1 << NUM_VARS; ++i) {
-    evals.push_back(QM31((uint32_t)1));
+    evals.push_back(QM31(i));
   }
 
-  Sumcheck<NUM_VARS> sumcheck(evals, true);
+  for (std::size_t i = 0; i < 1 << NUM_VARS; ++i) {
+    expected_claim += evals[i] * evals[i + (1<<NUM_VARS)];
+  }
+  
+  Sumcheck<NUM_VARS> sumcheck(evals, false);
 
   for (std::size_t i = 0; i < NUM_VARS; ++i) {
     std::array<QM31, 3> this_round_points;
@@ -54,20 +49,12 @@ int main() {
 
     QM31 this_round_claim = this_round_points[0] + this_round_points[1];
 
-    std::cout << "this round claim" << this_round_claim.to_string()
-              << std::endl;
-
-    // std::cout << this_round_points[0].to_string() << std::endl;
-    // std::cout << this_round_points[1].to_string() << std::endl;
-    // std::cout << this_round_points[2].to_string() << std::endl;
+    REQUIRE(this_round_claim == expected_claim);
 
     uint64_t a[4] = {32482843, 85864538, 8348234, 9544334};
     QM31 challenge = QM31(a);
 
-    QM31 next_round_claim = interpolate_at(challenge, this_round_points.data());
-
-    std::cout << "next round claim" << next_round_claim.to_string()
-              << std::endl;
+    expected_claim = interpolate_at(challenge, this_round_points.data());
 
     if (NUM_VARS - i > 16){sumcheck.fold<2048, 32>(challenge);}
     else if (NUM_VARS - i > 15){sumcheck.fold<1024, 32>(challenge);}
@@ -83,8 +70,4 @@ int main() {
     else if (NUM_VARS - i > 5){sumcheck.fold<1, 32>(challenge);}
     else {sumcheck.fold<1, 1>(challenge);}
   }
-
-  std::cout << (std::chrono::high_resolution_clock::now() - sumcheck.start_raw).count() << std::endl;
-
-  return 0;
 }
