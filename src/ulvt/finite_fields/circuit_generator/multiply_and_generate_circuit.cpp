@@ -3,6 +3,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <cstdint>
 
 #include "./constants.hpp"
 
