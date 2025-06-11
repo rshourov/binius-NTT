@@ -13,13 +13,13 @@ public:
 
     CM31 subfield_elements[2];
 
-    __host__ __device__ constexpr QM31(CM31 lo, CM31 hi) : subfield_elements{lo, hi} {}
+    __host__ __device__ constexpr QM31(CM31 lo, CM31 hi) noexcept: subfield_elements{lo, hi} {}
 
-    __host__ __device__ constexpr QM31() : subfield_elements{CM31(), CM31()} {}
+    __host__ __device__ constexpr QM31() noexcept: subfield_elements{CM31(), CM31()} {}
 
-    __host__ __device__ constexpr QM31(uint32_t val) : subfield_elements{CM31(val), CM31()} {}
+    __host__ __device__ constexpr QM31(uint32_t val) noexcept: subfield_elements{CM31(val), CM31()} {}
 
-    __host__ __device__ constexpr QM31(uint64_t val[4]) : subfield_elements{CM31(val), CM31(val+2)} {}
+    __host__ __device__ constexpr QM31(uint64_t val[4]) noexcept: subfield_elements{CM31(val), CM31(val+2)} {}
 
     __host__ __device__ constexpr QM31 operator+(QM31 rhs) const { 
         return QM31(

@@ -11,12 +11,12 @@ public:
 
     static constexpr uint32_t P = ((uint32_t) 1<<BITS) - 1;
 
-    __host__ __device__ constexpr M31() : val(0) {}
+    __host__ __device__ constexpr M31() noexcept: val(0) {}
     // Assumes val is in the range [0, P)
-    __host__ __device__ constexpr M31(uint32_t val) : val(val) {}
+    __host__ __device__ constexpr M31(uint32_t val) noexcept: val(val) {}
 
     // Assumes val is in the range [0, P^2)
-    __host__ __device__ constexpr M31(uint64_t val) : val(
+    __host__ __device__ constexpr M31(uint64_t val) noexcept: val(
         ((((val >> BITS) + val + 1) >> BITS) + val) & P
     ) {}
 
