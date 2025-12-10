@@ -61,13 +61,17 @@ def main():
             if section.startswith('submodule'):
                 path = config[section].get('path', '').strip()
                 url = config[section].get('url', '').strip()
+                # Validate path to prevent directory traversal attacks
+                if path and ('..' in path or path.startswith('/') or '~' in path):
+                    print(f"⚠️  Skipping {path}: Invalid path (security check failed)")
+                    continue
                 # Validate URL is from github.com (expected source for this project)
                 if path and url and url.startswith('https://github.com/'):
-                    target_dir = f"{work_dir}/{path}"
-                    if not os.path.exists(f"{target_dir}/.git"):
+                    target_dir = os.path.join(work_dir, path)
+                    if not os.path.exists(os.path.join(target_dir, '.git')):
                         if run_cmd(f"git clone {url} {target_dir}", f"Cloning {path}"):
                             # Verify the clone was successful
-                            if not os.path.exists(f"{target_dir}/.git"):
+                            if not os.path.exists(os.path.join(target_dir, '.git')):
                                 print(f"⚠️  Warning: Clone of {path} may have failed")
                         else:
                             print(f"⚠️  Warning: Failed to clone {path}")
