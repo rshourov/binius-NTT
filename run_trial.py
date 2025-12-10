@@ -7,6 +7,7 @@ This script will build and test the project on Kaggle GPU
 import subprocess
 import sys
 import os
+import configparser
 
 def run_cmd(cmd, description):
     """Run command and print output"""
@@ -54,17 +55,24 @@ def main():
     elif os.path.exists(f"{work_dir}/.gitmodules"):
         # When .git is not present but .gitmodules is, manually clone submodules
         print("⚠️  No .git directory found, manually cloning submodules...")
-        import configparser
         config = configparser.ConfigParser()
         config.read(f"{work_dir}/.gitmodules")
         for section in config.sections():
             if section.startswith('submodule'):
                 path = config[section].get('path', '').strip()
                 url = config[section].get('url', '').strip()
-                if path and url:
+                # Validate URL is from github.com (expected source for this project)
+                if path and url and url.startswith('https://github.com/'):
                     target_dir = f"{work_dir}/{path}"
                     if not os.path.exists(f"{target_dir}/.git"):
-                        run_cmd(f"git clone {url} {target_dir}", f"Cloning {path}")
+                        if run_cmd(f"git clone {url} {target_dir}", f"Cloning {path}"):
+                            # Verify the clone was successful
+                            if not os.path.exists(f"{target_dir}/.git"):
+                                print(f"⚠️  Warning: Clone of {path} may have failed")
+                        else:
+                            print(f"⚠️  Warning: Failed to clone {path}")
+                elif url and not url.startswith('https://github.com/'):
+                    print(f"⚠️  Skipping {path}: URL not from github.com")
     else:
         print("⚠️  No git metadata found, skipping submodule initialization")
         print("    Make sure submodules are already present in the uploaded files")
