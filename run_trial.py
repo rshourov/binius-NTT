@@ -47,9 +47,37 @@ def main():
     os.chdir(work_dir)
     
     # Initialize git submodules
-    print("\n📚 Setting up Git submodules...")
-    run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
-    run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    print("\n📚 Setting up dependencies (git submodules)...")
+    
+    # Check if we're in a git repository
+    result = subprocess.run(f"cd {work_dir} && git rev-parse --git-dir", 
+                          shell=True, capture_output=True, text=True)
+    
+    if result.returncode == 0:
+        # We have a git repository, use standard git submodule commands
+        run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
+        run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    else:
+        # Not a git repository (e.g., uploaded via Kaggle), clone submodules manually
+        print("⚠️  Not a git repository. Cloning submodules manually...")
+        
+        # Clone Catch2 (commit 53d0d91 from .gitmodules)
+        if not run_cmd(
+            f"cd {work_dir}/third-party && rm -rf Catch2 && "
+            f"git clone https://github.com/catchorg/Catch2.git && "
+            f"cd Catch2 && git checkout 53d0d913a422d356b23dd927547febdf69ee9081",
+            "Cloning Catch2"
+        ):
+            sys.exit(1)
+        
+        # Clone nvbench (commit a171514 from .gitmodules)
+        if not run_cmd(
+            f"cd {work_dir}/third-party && rm -rf nvbench && "
+            f"git clone https://github.com/NVIDIA/nvbench.git && "
+            f"cd nvbench && git checkout a171514056e5d6a7f52a035dd6c812fa301d4f4f",
+            "Cloning nvbench"
+        ):
+            sys.exit(1)
     
     # Build project
     print("\n🔨 Building project...")
