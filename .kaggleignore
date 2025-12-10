@@ -2,7 +2,6 @@
 build/
 .git/
 .gitignore
-.gitmodules
 *.md
 !README.md
 *.o

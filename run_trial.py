@@ -46,10 +46,28 @@ def main():
     work_dir = "/kaggle/working"
     os.chdir(work_dir)
     
-    # Initialize git submodules
+    # Initialize git submodules (if git repository exists)
     print("\n📚 Setting up Git submodules...")
-    run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
-    run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    if os.path.exists(f"{work_dir}/.git"):
+        run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
+        run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    elif os.path.exists(f"{work_dir}/.gitmodules"):
+        # When .git is not present but .gitmodules is, manually clone submodules
+        print("⚠️  No .git directory found, manually cloning submodules...")
+        import configparser
+        config = configparser.ConfigParser()
+        config.read(f"{work_dir}/.gitmodules")
+        for section in config.sections():
+            if section.startswith('submodule'):
+                path = config[section].get('path', '').strip()
+                url = config[section].get('url', '').strip()
+                if path and url:
+                    target_dir = f"{work_dir}/{path}"
+                    if not os.path.exists(f"{target_dir}/.git"):
+                        run_cmd(f"git clone {url} {target_dir}", f"Cloning {path}")
+    else:
+        print("⚠️  No git metadata found, skipping submodule initialization")
+        print("    Make sure submodules are already present in the uploaded files")
     
     # Build project
     print("\n🔨 Building project...")
