@@ -8,6 +8,8 @@ import subprocess
 import sys
 import os
 import configparser
+import shlex
+from urllib.parse import urlparse
 
 def run_cmd(cmd, description):
     """Run command and print output"""
@@ -57,6 +59,8 @@ def main():
         print("⚠️  No .git directory found, manually cloning submodules...")
         config = configparser.ConfigParser()
         config.read(f"{work_dir}/.gitmodules")
+        work_dir_abs = os.path.abspath(work_dir)
+        
         for section in config.sections():
             if section.startswith('submodule'):
                 path = config[section].get('path', '').strip()
@@ -66,28 +70,39 @@ def main():
                 if not path:
                     continue
                 # Normalize and validate path stays within work_dir
-                normalized_path = os.path.normpath(os.path.join(work_dir, path))
-                if not normalized_path.startswith(os.path.abspath(work_dir)):
+                normalized_path = os.path.normpath(os.path.join(work_dir_abs, path))
+                if not normalized_path.startswith(work_dir_abs + os.sep) and normalized_path != work_dir_abs:
                     print(f"⚠️  Skipping {path}: Path escapes working directory (security check failed)")
                     continue
                 
-                # Validate URL structure more strictly
-                if not url or not url.startswith('https://github.com/'):
-                    print(f"⚠️  Skipping {path}: Invalid or non-GitHub URL")
+                # Validate URL structure using proper URL parsing
+                if not url:
+                    print(f"⚠️  Skipping {path}: Empty URL")
                     continue
-                # Additional URL validation: ensure no path traversal in URL
-                if '..' in url or url.count('github.com/') > 1:
-                    print(f"⚠️  Skipping {path}: Suspicious URL pattern detected")
+                try:
+                    parsed_url = urlparse(url)
+                    if parsed_url.scheme != 'https' or parsed_url.netloc != 'github.com':
+                        print(f"⚠️  Skipping {path}: URL must be https://github.com/ (got {url})")
+                        continue
+                    # Additional checks for suspicious patterns
+                    if '..' in url or '@' in url.split('github.com')[1] if 'github.com' in url else True:
+                        print(f"⚠️  Skipping {path}: Suspicious URL pattern detected in {url}")
+                        continue
+                except Exception as e:
+                    print(f"⚠️  Skipping {path}: Invalid URL format ({url})")
                     continue
                 
                 target_dir = os.path.join(work_dir, path)
                 if not os.path.exists(os.path.join(target_dir, '.git')):
-                    if not run_cmd(f"git clone {url} {target_dir}", f"Cloning {path}"):
-                        print(f"❌ Failed to clone {path}")
+                    # Shell-escape URL to prevent command injection
+                    safe_url = shlex.quote(url)
+                    safe_target = shlex.quote(target_dir)
+                    if not run_cmd(f"git clone {safe_url} {safe_target}", f"Cloning {path} from {url}"):
+                        print(f"❌ Failed to clone submodule {path} from {url}")
                         continue
                     # Verify the clone was successful
                     if not os.path.exists(os.path.join(target_dir, '.git')):
-                        print(f"❌ Clone verification failed for {path}")
+                        print(f"❌ Clone verification failed for {path} - .git directory not found after clone")
                         continue
     else:
         print("⚠️  No git metadata found, skipping submodule initialization")
