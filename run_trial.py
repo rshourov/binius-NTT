@@ -85,7 +85,9 @@ def main():
                         print(f"⚠️  Skipping {path}: URL must be https://github.com/ (got {url})")
                         continue
                     # Additional checks for suspicious patterns
-                    if '..' in url or '@' in url.split('github.com')[1] if 'github.com' in url else True:
+                    # At this point, we know github.com is in the URL due to the check above
+                    url_after_github = url.split('github.com', 1)[1]
+                    if '..' in url or '@' in url_after_github:
                         print(f"⚠️  Skipping {path}: Suspicious URL pattern detected in {url}")
                         continue
                 except Exception as e:
