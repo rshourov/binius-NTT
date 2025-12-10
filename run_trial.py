@@ -61,22 +61,34 @@ def main():
             if section.startswith('submodule'):
                 path = config[section].get('path', '').strip()
                 url = config[section].get('url', '').strip()
+                
                 # Validate path to prevent directory traversal attacks
-                if path and ('..' in path or path.startswith('/') or '~' in path):
-                    print(f"⚠️  Skipping {path}: Invalid path (security check failed)")
+                if not path:
                     continue
-                # Validate URL is from github.com (expected source for this project)
-                if path and url and url.startswith('https://github.com/'):
-                    target_dir = os.path.join(work_dir, path)
+                # Normalize and validate path stays within work_dir
+                normalized_path = os.path.normpath(os.path.join(work_dir, path))
+                if not normalized_path.startswith(os.path.abspath(work_dir)):
+                    print(f"⚠️  Skipping {path}: Path escapes working directory (security check failed)")
+                    continue
+                
+                # Validate URL structure more strictly
+                if not url or not url.startswith('https://github.com/'):
+                    print(f"⚠️  Skipping {path}: Invalid or non-GitHub URL")
+                    continue
+                # Additional URL validation: ensure no path traversal in URL
+                if '..' in url or url.count('github.com/') > 1:
+                    print(f"⚠️  Skipping {path}: Suspicious URL pattern detected")
+                    continue
+                
+                target_dir = os.path.join(work_dir, path)
+                if not os.path.exists(os.path.join(target_dir, '.git')):
+                    if not run_cmd(f"git clone {url} {target_dir}", f"Cloning {path}"):
+                        print(f"❌ Failed to clone {path}")
+                        continue
+                    # Verify the clone was successful
                     if not os.path.exists(os.path.join(target_dir, '.git')):
-                        if run_cmd(f"git clone {url} {target_dir}", f"Cloning {path}"):
-                            # Verify the clone was successful
-                            if not os.path.exists(os.path.join(target_dir, '.git')):
-                                print(f"⚠️  Warning: Clone of {path} may have failed")
-                        else:
-                            print(f"⚠️  Warning: Failed to clone {path}")
-                elif url and not url.startswith('https://github.com/'):
-                    print(f"⚠️  Skipping {path}: URL not from github.com")
+                        print(f"❌ Clone verification failed for {path}")
+                        continue
     else:
         print("⚠️  No git metadata found, skipping submodule initialization")
         print("    Make sure submodules are already present in the uploaded files")
