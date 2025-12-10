@@ -10,6 +10,7 @@ import os
 
 # Git submodule commit hashes (from .gitmodules)
 # These are used when running on Kaggle where .git/ is not available
+# To update: run `git ls-tree HEAD third-party/` to see current submodule commits
 CATCH2_COMMIT = "53d0d913a422d356b23dd927547febdf69ee9081"
 NVBENCH_COMMIT = "a171514056e5d6a7f52a035dd6c812fa301d4f4f"
 
