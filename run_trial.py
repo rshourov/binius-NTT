@@ -7,6 +7,9 @@ This script will build and test the project on Kaggle GPU
 import subprocess
 import sys
 import os
+import configparser
+import shlex
+from urllib.parse import urlparse
 
 def run_cmd(cmd, description):
     """Run command and print output"""
@@ -46,10 +49,66 @@ def main():
     work_dir = "/kaggle/working"
     os.chdir(work_dir)
     
-    # Initialize git submodules
+    # Initialize git submodules (if git repository exists)
     print("\n📚 Setting up Git submodules...")
-    run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
-    run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    if os.path.exists(f"{work_dir}/.git"):
+        run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
+        run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    elif os.path.exists(f"{work_dir}/.gitmodules"):
+        # When .git is not present but .gitmodules is, manually clone submodules
+        print("⚠️  No .git directory found, manually cloning submodules...")
+        config = configparser.ConfigParser()
+        config.read(f"{work_dir}/.gitmodules")
+        work_dir_abs = os.path.abspath(work_dir)
+        
+        for section in config.sections():
+            if section.startswith('submodule'):
+                path = config[section].get('path', '').strip()
+                url = config[section].get('url', '').strip()
+                
+                # Validate path to prevent directory traversal attacks
+                if not path:
+                    continue
+                # Normalize and validate path stays within work_dir
+                normalized_path = os.path.normpath(os.path.join(work_dir_abs, path))
+                if not normalized_path.startswith(work_dir_abs + os.sep) and normalized_path != work_dir_abs:
+                    print(f"⚠️  Skipping {path}: Path escapes working directory (security check failed)")
+                    continue
+                
+                # Validate URL structure using proper URL parsing
+                if not url:
+                    print(f"⚠️  Skipping {path}: Empty URL")
+                    continue
+                try:
+                    parsed_url = urlparse(url)
+                    if parsed_url.scheme != 'https' or parsed_url.netloc != 'github.com':
+                        print(f"⚠️  Skipping {path}: URL must be https://github.com/ (got {url})")
+                        continue
+                    # Additional checks for suspicious patterns
+                    # At this point, we know github.com is in the URL due to the check above
+                    url_after_github = url.split('github.com', 1)[1]
+                    if '..' in url or '@' in url_after_github:
+                        print(f"⚠️  Skipping {path}: Suspicious URL pattern detected in {url}")
+                        continue
+                except Exception as e:
+                    print(f"⚠️  Skipping {path}: Invalid URL format ({url})")
+                    continue
+                
+                target_dir = os.path.join(work_dir, path)
+                if not os.path.exists(os.path.join(target_dir, '.git')):
+                    # Shell-escape URL to prevent command injection
+                    safe_url = shlex.quote(url)
+                    safe_target = shlex.quote(target_dir)
+                    if not run_cmd(f"git clone {safe_url} {safe_target}", f"Cloning {path} from {url}"):
+                        print(f"❌ Failed to clone submodule {path} from {url}")
+                        continue
+                    # Verify the clone was successful
+                    if not os.path.exists(os.path.join(target_dir, '.git')):
+                        print(f"❌ Clone verification failed for {path} - .git directory not found after clone")
+                        continue
+    else:
+        print("⚠️  No git metadata found, skipping submodule initialization")
+        print("    Make sure submodules are already present in the uploaded files")
     
     # Build project
     print("\n🔨 Building project...")
