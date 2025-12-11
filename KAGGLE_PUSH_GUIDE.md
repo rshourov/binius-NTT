@@ -1,5 +1,21 @@
 # Step-by-Step Guide: Running Binius-NTT on Kaggle GPU using CLI
 
+## ✨ Recent Fix: Git Submodules Issue Resolved
+
+The git portion error when running `kaggle kernels push` has been **fixed**! 
+
+**What was the problem?**
+- When uploading to Kaggle, `.git/` and `.gitmodules` are excluded (via `.kaggleignore`)
+- Previously, `run_trial.py` tried to run `git submodule update` which failed without git metadata
+
+**The solution:**
+- `run_trial.py` now automatically detects if it's running in a git repository
+- If **git is available** (local dev): uses standard `git submodule` commands
+- If **no git** (Kaggle upload): manually clones dependencies from GitHub with exact commit hashes
+- Dependencies (Catch2, nvbench) are fetched automatically in both scenarios ✅
+
+---
+
 ## What You Have Setup ✅
 - Conda env `cuda` with Kaggle CLI installed
 - Kaggle API credentials in `~/.kaggle/kaggle.json`
@@ -135,9 +151,15 @@ kaggle kernels output riadmashrubshourov/binius-ntt-gpu-trial
 ```
 
 Common issues:
-- CMake installation failed (internet setting)
-- Submodule init failed (internet setting)
+- CMake installation failed (internet setting - ensure "Internet" is enabled in kernel settings)
 - CUDA version mismatch (unlikely)
+
+**Note**: The git submodule issue has been resolved! The `run_trial.py` script now:
+- Detects if running in a git repository
+- If yes: uses `git submodule update --init --recursive`
+- If no (Kaggle upload): manually clones dependencies from GitHub
+  
+This means dependencies will be automatically fetched whether you're running locally or on Kaggle.
 
 ### Build takes too long
 The first build is slowest. Subsequent runs are faster if you push updates.

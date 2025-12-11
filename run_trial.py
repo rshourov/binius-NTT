@@ -8,6 +8,12 @@ import subprocess
 import sys
 import os
 
+# Git submodule commit hashes (from .gitmodules)
+# These are used when running on Kaggle where .git/ is not available
+# To update: run `git ls-tree HEAD third-party/` to see current submodule commits
+CATCH2_COMMIT = "53d0d913a422d356b23dd927547febdf69ee9081"
+NVBENCH_COMMIT = "a171514056e5d6a7f52a035dd6c812fa301d4f4f"
+
 def run_cmd(cmd, description):
     """Run command and print output"""
     print(f"\n{'='*60}")
@@ -47,9 +53,37 @@ def main():
     os.chdir(work_dir)
     
     # Initialize git submodules
-    print("\n📚 Setting up Git submodules...")
-    run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
-    run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    print("\n📚 Setting up dependencies (git submodules)...")
+    
+    # Check if we're in a git repository
+    result = subprocess.run(f"cd {work_dir} && git rev-parse --git-dir", 
+                          shell=True, capture_output=True, text=True)
+    
+    if result.returncode == 0:
+        # We have a git repository, use standard git submodule commands
+        run_cmd(f"cd {work_dir} && git config --global --add safe.directory {work_dir}", "Git config")
+        run_cmd(f"cd {work_dir} && git submodule update --init --recursive", "Initializing submodules")
+    else:
+        # Not a git repository (e.g., uploaded via Kaggle), clone submodules manually
+        print("⚠️  Not a git repository. Cloning submodules manually...")
+        
+        # Clone Catch2 at specific commit to match .gitmodules
+        if not run_cmd(
+            f"cd {work_dir}/third-party && rm -rf Catch2 && "
+            f"git clone https://github.com/catchorg/Catch2.git && "
+            f"cd Catch2 && git checkout {CATCH2_COMMIT}",
+            f"Cloning Catch2 (commit {CATCH2_COMMIT[:7]})"
+        ):
+            sys.exit(1)
+        
+        # Clone nvbench at specific commit to match .gitmodules
+        if not run_cmd(
+            f"cd {work_dir}/third-party && rm -rf nvbench && "
+            f"git clone https://github.com/NVIDIA/nvbench.git && "
+            f"cd nvbench && git checkout {NVBENCH_COMMIT}",
+            f"Cloning nvbench (commit {NVBENCH_COMMIT[:7]})"
+        ):
+            sys.exit(1)
     
     # Build project
     print("\n🔨 Building project...")
